@@ -178,9 +178,11 @@ button{font-family:inherit;border:0;background:none;color:inherit;cursor:pointer
 .tpl{position:relative;}
 .tpl.sel{border:2px solid var(--accent);}
 .new-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:4px;background:var(--accent);}
-.edit-pill{position:absolute;left:4px;bottom:4px;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;z-index:2;cursor:pointer;}
-.tpl .edit-pill{bottom:auto;top:50px;}
-.done-badge{position:absolute;bottom:4px;right:4px;width:18px;height:18px;border-radius:50%;background:#2DB84B;color:#fff;display:flex;align-items:center;justify-content:center;z-index:2;}
+.edit-pill,.done-badge{position:absolute;bottom:4px;width:20px;height:20px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;z-index:2;}
+.edit-pill{left:4px;background:var(--accent);cursor:pointer;}
+.done-badge{right:4px;background:#2DB84B;}
+.edit-pill svg,.done-badge svg{color:#fff;}
+.tpl .edit-pill,.tpl .done-badge{bottom:auto;top:52px;}
 </style>
 </head>
 <body>
@@ -452,7 +454,7 @@ $('prompt').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftK
 /* Follow-up (shared by Idea 1 / 2): keep editing an AI item in My Wardrobe + remix PF templates with AI */
 var mode='create',hasResult=false;
 var DEFAULT_ITEM='assets/images/img-ai-item-01.jpg';
-var PEN='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>';
+var PEN='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>';
 function panelTitle(t){var el=document.querySelector('.panel-head .panel-title');if(el)el.textContent=t;}
 function chipText(t){var c=document.querySelector('#itemArea .ai-chip');if(c)c.textContent=t;}
 function showPv(on){var pv=document.querySelector('#itemArea .pv');if(pv)pv.style.display=on?'':'none';}
