@@ -41,6 +41,9 @@ button{font-family:inherit;border:0;background:none;color:inherit;cursor:pointer
 @keyframes spin{to{transform:rotate(360deg);}}
 .animate-btn{position:absolute;right:10px;bottom:20px;height:30px;padding:0 12px;border-radius:15px;background:#fff;color:var(--accent);font-size:12px;font-weight:600;display:none;}
 .photo.done .animate-btn{display:block;}
+.gender-toggle{position:absolute;left:10px;bottom:20px;display:flex;gap:3px;background:#fff;border-radius:18px;padding:3px;box-shadow:0 2px 8px rgba(0,0,0,.18);z-index:2;}
+.gt-btn{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--accent);}
+.gt-btn.on{background:var(--accent);color:#fff;}
 .toast{position:absolute;left:50%;top:12px;transform:translate(-50%,-8px);background:rgba(20,20,20,.86);color:#fff;font-size:12px;padding:7px 12px;border-radius:16px;white-space:nowrap;opacity:0;transition:all .25s;pointer-events:none;z-index:5;}
 .toast.show{opacity:1;transform:translate(-50%,0);}
 .scroll-area{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-top:-12px;background:var(--bg);border-radius:16px 16px 0 0;position:relative;z-index:2;padding:0 10px 16px;}
@@ -157,6 +160,8 @@ button{font-family:inherit;border:0;background:none;color:inherit;cursor:pointer
 .new-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:4px;background:var(--accent);}
 .edit-pill{position:absolute;left:50%;bottom:5px;transform:translateX(-50%);height:20px;padding:0 8px;border-radius:10px;background:var(--accent);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;gap:3px;white-space:nowrap;z-index:2;cursor:pointer;}
 .tpl .edit-pill{bottom:auto;top:50px;}
+/* Applied/done checkmark: top-right corner, clear of the Edit pill which stays bottom-center (top area on .tpl) */
+.done-badge{position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:50%;background:#2DB84B;color:#fff;display:flex;align-items:center;justify-content:center;z-index:2;}
 </style>
 </head>
 <body>
@@ -184,6 +189,10 @@ button{font-family:inherit;border:0;background:none;color:inherit;cursor:pointer
     <div class="dim"></div>
     <div class="processing"><span class="spin" aria-hidden="true"></span>Processing…<br>You can view the results later in History page.</div>
     <button class="animate-btn">Animate Photo</button>
+    <div class="gender-toggle" id="genderToggle">
+      <button class="gt-btn on" data-g="f" aria-label="Female model"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="5"/><path d="M12 13v8M9 18h6"/></svg></button>
+      <button class="gt-btn" data-g="m" aria-label="Male model"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="14" r="5"/><path d="M14 10l6-6M14 4h6v6"/></svg></button>
+    </div>
     <div class="toast" id="toast"></div>
   </div>
   <div class="scroll-area" id="scroll-area">
@@ -334,6 +343,8 @@ $('prompt').addEventListener('input',renderComposer);
 document.querySelectorAll('#composer button,.kb').forEach(function(el){el.addEventListener('mousedown',function(e){e.preventDefault();});});
 renderCredits();
 document.querySelectorAll('.tile.item[data-kind="plain"]').forEach(function(b){b.addEventListener('click',function(){selectPlain(b);});});
+document.querySelectorAll('#genderToggle .gt-btn').forEach(function(b){b.addEventListener('click',function(){
+  document.querySelectorAll('#genderToggle .gt-btn').forEach(function(x){x.classList.remove('on');});b.classList.add('on');});});
 $('tabClose').addEventListener('click',function(){location.href='index.html';});
 $('applyBtn').addEventListener('click',function(){location.href='index.html';});
 
@@ -408,14 +419,19 @@ function resultFor(){var p=$('prompt').value.toLowerCase();
   var f=FILTERS[variant%FILTERS.length];variant++;return {src:DEFAULT_ITEM,filter:f,name:'AI satin camisole'};}
 function showResult(){var r=resultFor();setItem(r.src,r.filter);$('itemImg').dataset.name=r.name;hasResult=true;chipText('AI');showPv(true);}
 function clearSel(){document.querySelectorAll('.tile.sel,.tpl.sel').forEach(function(x){x.classList.remove('sel');});
-  document.querySelectorAll('.edit-pill').forEach(function(x){x.remove();});}
+  document.querySelectorAll('.edit-pill,.done-badge').forEach(function(x){x.remove();});}
 function addPill(el,onTap){var p=document.createElement('span');p.className='edit-pill';p.setAttribute('role','button');p.setAttribute('aria-label','Edit with AI');
   p.innerHTML=PEN+'Edit';p.addEventListener('click',function(e){e.stopPropagation();onTap();});el.appendChild(p);}
+// Green check = "this is what's applied right now"; it sits in the free top-right corner so it
+// never collides with the Edit pill (bottom-center on tiles, top on the taller .tpl cards).
+function addDoneBadge(el){var s=document.createElement('span');s.className='done-badge';s.setAttribute('aria-hidden','true');
+  s.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>';
+  el.appendChild(s);}
 function selectAI(b){clearSel();b.classList.add('sel');var d=b.querySelector('.new-dot');if(d)d.remove();
-  tryOn(function(){addPill(b,function(){openEdit(b);});});}
+  tryOn(function(){addDoneBadge(b);addPill(b,function(){openEdit(b);});});}
 // Plain (non-AI) wardrobe items: same try-on + Edit-with-AI affordance as AI items, using the item's own photo as the reference.
 function selectPlain(b){if(b.classList.contains('sel'))return;clearSel();b.classList.add('sel');
-  tryOn(function(){addPill(b,function(){openPlainEdit(b);});});}
+  tryOn(function(){addDoneBadge(b);addPill(b,function(){openPlainEdit(b);});});}
 function openPlainEdit(b){var src=b.querySelector('img').getAttribute('src');resetComposer('');setRef(src);
   setMode('item');setItem(src,'none');go('result');renderComposer();}
 // A-2: open with the item's original prompt + reference; unchanged input = Regenerate, edits = Generate.
@@ -425,7 +441,8 @@ function openEdit(b){resetComposer(b.dataset.prompt||'');setRef(b.dataset.ref);m
 function openTpl(t){var src=t.querySelector('img').getAttribute('src');resetComposer('');setRef(src);
   setMode('tpl');setItem(src,'none');go('result');renderComposer();}
 document.querySelectorAll('.tpl').forEach(function(t){t.addEventListener('click',function(){
-  if(t.classList.contains('sel'))return;clearSel();t.classList.add('sel');addPill(t,function(){openTpl(t);});});});
+  if(t.classList.contains('sel'))return;clearSel();t.classList.add('sel');
+  tryOn(function(){addDoneBadge(t);addPill(t,function(){openTpl(t);});});});});
 // Always adds a new item (the original stays); added only, not applied.
 function addToWardrobe(){
   if(!hasResult)return;
